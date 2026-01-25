@@ -199,10 +199,42 @@ if __name__ == '__main__':
     print("start training...")
     model.train()
     
-    num_steps = 10
+    num_epochs = 3
+    num_steps = 100
     batch_size = 2
 
-    for step in range(num_steps):
-        batch = create_dummy_dataset(batch_size, config, device)
-        
-        # TODO: train, infer
+    for epoch in range(num_epochs):
+        for step in range(num_steps):
+            batch = create_dummy_dataset(batch_size, config, device)
+            
+            logits = model(
+                batch["user_static"],
+                batch["short_term"],
+                batch["positive_feedback"],
+                batch["lifelong"],
+                batch["target_ids"],
+                tgt_mask=model._generate_square_subsequent_mask(batch["target_ids"].size(1)).to(device),
+                tgt_padding_mask=(batch["target_ids"] == config.PAD_TOKEN_ID)
+            )
+            loss = criterion(logits.view(-1, config.VOCAB_SIZE), batch["target_ids"].view(-1))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            print(f"Epoch {epoch + 1}/{num_epochs}, Step {step + 1}/{num_steps}, Loss: {loss.item():.4f}")
+
+    print("training finished.")
+    torch.save(model.state_dict(), "model.pth")
+    print("model saved.")
+
+    print("start inferring...")
+    model.eval()
+    
+    test_batch = create_dummy_dataset(1, config, device)
+    # 自回归逐token生成
+    generated_ids = model.generate(
+        test_batch["user_static"],
+        test_batch["short_term"],
+        test_batch["positive_feedback"],
+        test_batch["lifelong"]
+    )
+    print("generated_ids:", generated_ids)

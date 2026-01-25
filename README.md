@@ -2,11 +2,5 @@
 The unofficial implementation of Kuaishou's OneRec
 
 
-
-ToDo:
-- [ ] train
-- [ ] infer
-- [ ] Moe
-- [ ] Qformer
-
-
+**Update**: 
+The official implementation is at [Kuaishou's OpenOneRec](https://github.com/Kuaishou-OneRec/OpenOneRec)
